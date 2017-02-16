@@ -1,0 +1,17 @@
+#!/bin/bash
+# ##########################################################
+# ALPS(Android4.1 based) build environment profile setting
+# ##########################################################
+# Overwrite JAVA_HOME environment variable setting if already exists
+perl syscLtk $1 $2;
+LTK_SYSNC=`cat LTK_SYSNC`;
+LTK_LUNCH=`cat LTK_LUNCH`;
+if [ "$LTK_SYSNC" = "success" ]
+then
+source build/envsetup.sh
+echo $LTK_LUNCH
+lunch $LTK_LUNCH
+kheader
+else
+echo failure
+fi

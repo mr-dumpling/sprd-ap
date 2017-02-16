@@ -1,0 +1,192 @@
+#!/usr/bin/perl
+#use strict;  
+#use warnings;  
+  
+use XML::Simple;  
+use Data::Dumper;  
+
+
+my $xmlfile = "PikeL3ModeMarlinAndroid6.0.xml";
+my $pac_file = "pac_9820_UMS.pl";
+my $lentek_project_file = "./project.conf";
+
+      if (-e $lentek_project_file)
+      {
+        open (FILE_HANDLE, "<$lentek_project_file") or die "cannot open $lentek_project_file\n";
+        while (<FILE_HANDLE>)
+        {
+          if (/^(\S+)\s*=\s*(\S+)/)
+          {
+    				if(!exists($featureValues{$1}))
+    				{
+    					push(@featureKeys, "${1}");
+    				}
+    				$featureValues{$1} = $2;
+          }
+        }
+        close FILE_HANDLE;
+      }
+      
+my $ResearchDownloadBinPath = "../tools/ResearchDownload/Bin";  
+my $otherBinPath = "$ResearchDownloadBinPath/ImageFiles/image";    
+my $outBinPath = "out/target/product/$featureValues{'TARGET_PROJECT'}";
+ 
+$binValues{"FDL"} = "$outBinPath/fdl1.bin";
+$binValues{"FDL2"}  = "$outBinPath/fdl2.bin";
+$binValues{"NV_TDLTE"}  = $otherBinPath . "/" . $featureValues{'NV_TDLTE'};
+$binValues{"ProdNV"} = "$outBinPath/prodnv.img";
+$binValues{"PhaseCheck"}  = "";
+$binValues{"EraseUBOOT"}  = "";
+$binValues{"SPLLoader"}  = "$outBinPath/u-boot-spl-16k.bin";
+$binValues{"Modem_TDLTE"}  = $otherBinPath . "/" . $featureValues{'MODEM_TDLTE'};
+$binValues{"DSP_TDLTE_LTE"}  = $otherBinPath . "/" . $featureValues{'DSP_TDLTE_LTE'};
+$binValues{"DSP_TDLTE_TD"}  = $otherBinPath . "/" . $featureValues{'DSP_TDLTE_TD'};
+$binValues{"DFS"}  = $otherBinPath . "/" . $featureValues{'DFS'};
+
+if(!exists $featureValues{"FDL_WCN"} || $featureValues{"FDL_WCN"} eq "")
+{
+	$binValues{"FDL_WCN"} = "";
+}
+else
+{
+	$binValues{"FDL_WCN"}  = $otherBinPath . "/" . $featureValues{'FDL_WCN'};
+}
+if(!exists $featureValues{"MODEM_WCN"} || $featureValues{"MODEM_WCN"} eq "")
+{
+	$binValues{"Modem_WCN"} = "";
+}
+else
+{
+	$binValues{"Modem_WCN"}  = $otherBinPath . "/" . $featureValues{'MODEM_WCN'};
+}
+
+$binValues{"BOOT"}  = "$outBinPath/boot.img";
+$binValues{"Recovery"}  = "$outBinPath/recovery.img";
+$binValues{"System" }  = "$outBinPath/system.img";
+$binValues{"UserData"}  = "$outBinPath/userdata.img";
+$binValues{"BootLogo"}  = $otherBinPath . "/" . $featureValues{'BOOTLOGO'};
+$binValues{"Fastboot_Logo"}  = $otherBinPath . "/" . $featureValues{'FASTBOOT_LOGO'};
+$binValues{"Cache"}  = "$outBinPath/cache.img";
+$binValues{"FLASH_TDLTE"}  = "";
+$binValues{"EraseMisc"}  = "";
+$binValues{"Persist"}  = "$outBinPath/persist.img";
+$binValues{"SysInfo"}  = "$outBinPath/sysinfo.img";
+$binValues{"UBOOTLoader"  }  = "$outBinPath/u-boot.bin";
+
+$omitFlagValues{"FDL"} = 0;
+$omitFlagValues{"FDL2"}  = 0;
+$omitFlagValues{"NV_TDLTE"}  = 1;
+$omitFlagValues{"ProdNV"} = 1;
+$omitFlagValues{"PhaseCheck"}  = 1;
+$omitFlagValues{"EraseUBOOT"}  = 1;
+$omitFlagValues{"SPLLoader"}  = 0;
+$omitFlagValues{"Modem_TDLTE"}  = 1;
+$omitFlagValues{"DSP_TDLTE_LTE"}  = 1;
+$omitFlagValues{"DSP_TDLTE_TD"}  = 1;
+$omitFlagValues{"DFS"}  = 1;
+$omitFlagValues{"FDL_WCN"} = 1;
+$omitFlagValues{"Modem_WCN"} = 1;
+$omitFlagValues{"BOOT"}  = 0;
+$omitFlagValues{"Recovery"}  = 0;
+$omitFlagValues{"System" }  = 0;
+$omitFlagValues{"UserData"}  = 0;
+$omitFlagValues{"BootLogo"}  = 0;
+$omitFlagValues{"Fastboot_Logo"}  = 1;
+$omitFlagValues{"Cache"}  = 1;
+$omitFlagValues{"FLASH_TDLTE"}  = 1;
+$omitFlagValues{"EraseMisc"}  = 0;
+$omitFlagValues{"Persist"}  = 0;
+$omitFlagValues{"SysInfo"}  = 0;
+$omitFlagValues{"UBOOTLoader"  }  = 0;
+
+
+my $config = "$outBinPath/$xmlfile";  
+my $xml = XML::Simple->new(KeyAttr=>"", ForceArray => 1);
+
+
+die "can NOT open $pac_file:$!" if ( ! open OUT_FILE, ">$pac_file");
+
+
+open(FD,"pac_prefix")||die("Can not open the pac_prefix file!$!n");
+my @prefix=<FD>;
+close(FD);
+
+
+
+my $tree = $xml->XMLin($config);  
+my $itemsref=@{$tree->{"SchemeList"}}[0]->{"Scheme"}[0];
+my $productname = $itemsref->{"name"};
+my $packagename = $featureValues{'CUSTOM_BUILD_PACKAGE'};
+my $customverno = $featureValues{'CUSTOM_BUILD_VERNO'};
+
+if($ENV{"TARGET_BUILD_VARIANT"} ne "user")
+{
+	$packagename = $packagename . "_" . $ENV{"TARGET_BUILD_VARIANT"};
+}
+
+foreach(@prefix){
+	my $line = $_;
+	$line  =~ s/project_name/$itemsref->{"name"}/igs;
+	print OUT_FILE $line;
+}
+
+print OUT_FILE "my \@param = (\n   #ID              , file_path          , file_flag, check_flag, omit_flag, addr1     , addr2 \n";
+	
+my @files = @{$itemsref->{"File"}};
+my $param = "my \@param = (";
+foreach(@files){
+	my $id =  $_->{"ID"}[0];
+	my $type =  $_->{"Type"}[0];
+	my $file_flag = $_->{"Flag"}[0];
+	my $addr = $_->{"Block"}[0]->{"Base"}[0];
+	my $check_flag = $_->{"CheckFlag"}[0];	
+	my $file_path = $binValues{$id}; #"\${ARGV[\$index+$i]}";
+	my $omit_flag = 0;
+	if($file_flag eq 0 )
+	{
+		$file_path = "";
+	}
+	
+	#if($file_path eq "")
+	#{ 
+	#	$check_flag = 0;
+	#}
+	#else
+	{ 
+		$check_flag = 1;
+	}
+			
+	
+	my $result = index($type, "FDL");
+	if ($result ge 0)
+		{	$file_flag = "0x0101";}
+
+		 
+#	if ($id eq "NV_TDLTE" || $id eq "ProdNV" || $id eq "PhaseCheck" || $id eq "EraseUBOOT" || $id eq "Modem_TDLTE" || $id eq "DSP_TDLTE_LTE" ||$id eq "DSP_TDLTE_TD" ||$id eq "DFS" ||$id eq "FDL_WCN" ||$id eq "Modem_WCN"||$id eq "Fastboot_Logo" ||$id eq "Cache" ||$id eq "FLASH_TDLTE")
+#		{	$omit_flag = 1;}
+	$omit_flag =$omitFlagValues{$id};
+
+		$id = "\"" . $id . "\"";
+		$file_path = "\"" . $file_path . "\"";
+	print OUT_FILE  sprintf("   [%-16s, %-19s, %-9s, %-9s, %-9s, %-10s, 0xFFFFFFFF  ],\n",$id, $file_path  , $file_flag,  $check_flag,$omit_flag, $addr);
+
+  }
+
+	print OUT_FILE   "   [\"\"              , \$config            , 2        , 0        , 0        , 0x0       , 0xFFFFFFFF  ],\n);";
+
+
+
+open(FD,"pac_suffix")||die("Can not open the pac_suffix file!$!n");
+my @suffix=<FD>;
+close(FD);
+
+foreach(@suffix){
+	print OUT_FILE $_;
+}
+
+close OUT_FILE;
+
+
+my $autoCommand = "/usr/bin/perl ./$pac_file $packagename.pac $productname $customverno $config";
+print $autoCommand . "\n";
+system($autoCommand);

@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+
+#----------------------------------------------#
+# Only packet for project_name
+#----------------------------------------------#
+
+my $number = scalar @ARGV;	
+my $i=0;
+my $start = time();
+
+print "\n\n--------------------------------------\n";
+for($i=0;$i<$number;$i++)
+{
+	print ${ARGV[$i]}." "
+}
+print "\n--------------------------------------\n\n";
+					
+if($number ne 4){
+    die "\nInvalid parameters, param number must be 4.\n\n";
+}
+
+my $pac_file       =${ARGV[0]};
+my $pac_prj        =${ARGV[1]};
+my $pac_ver        =${ARGV[2]};
+my $config         =${ARGV[3]};
+
+my $index = 4;
+
