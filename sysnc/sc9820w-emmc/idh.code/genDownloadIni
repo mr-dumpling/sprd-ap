@@ -1,0 +1,130 @@
+#!/usr/bin/perl
+# 
+
+my $ResearchDownloadBinPath = "../tools/ResearchDownload/Bin";
+my $ResearchDownloadBinPathRe = "../../..";
+my $lentek_project_file = "./project.conf";
+
+sub p_system
+{
+  my ($cmd) = @_;
+  my $result;
+  print("$cmd\n");
+  $result = system("$cmd");
+  return $result;
+}
+
+if (-e $lentek_project_file)
+{
+  open (FILE_HANDLE, "<$lentek_project_file") or die "cannot open $lentek_project_file\n";
+  while (<FILE_HANDLE>)
+  {
+    if (/^(\S+)\s*=\s*(\S+)/)
+    {
+			if(!exists($featureValues{$1}))
+			{
+				push(@featureKeys, "${1}");
+			}
+			$featureValues{$1} = $2;
+    }
+  }
+  close FILE_HANDLE;
+}
+my $project = $featureValues{"CUSTOM_TARGET_PROJECT"};
+my $lentek_project = $featureValues{"LENTEK_PROJECT"};
+my $lentek_customer = $featureValues{"LENTEK_CUSTOMER"};
+
+if (!-d "$ResearchDownloadBinPath/ImageFiles/image")
+		{
+			p_system("mkdir -p $ResearchDownloadBinPath/ImageFiles/image");
+		}
+		else
+		{
+			p_system("rm $ResearchDownloadBinPath/ImageFiles/image/*");
+		}
+		my @binArray = qw(MODEM_WCN MODEM_WLTE NV_WLTE DSP_WLTE_GGE WARM_WLTE FDL_WCN DFS  DSP_WLTE_LTE BOOTLOGO FASTBOOT_LOGO );	
+				
+		foreach $bin (@binArray) 
+    {
+			if(exists($featureValues{$bin}))
+			{
+				if(-e "../lentek/${lentek_project}/${lentek_customer}/image/$featureValues{$bin}")
+				{
+				  print ("../lentek/${lentek_project}/${lentek_customer}/image/$featureValues{$bin} \n");
+					system("ln -s  $ResearchDownloadBinPathRe/../../lentek/${lentek_project}/${lentek_customer}/image/$featureValues{$bin} $ResearchDownloadBinPath/ImageFiles/image/$featureValues{$bin}");
+				}
+				else
+				{
+					if(-e "../lentek/${lentek_project}/share/image/$featureValues{$bin}")
+					{
+						print ("../lentek/${lentek_project}/share/image/$featureValues{$bin} \n");
+						system("ln -s  $ResearchDownloadBinPathRe/../../lentek/${lentek_project}/share/image/$featureValues{$bin} $ResearchDownloadBinPath/ImageFiles/image/$featureValues{$bin}");
+					}	
+					else
+					{
+						print ("No $featureValues{$bin} exist \n");				
+					}	
+				}
+			}
+			else
+			{
+				print ("No $bin exist \n");				
+			}
+		}
+		
+my @genBinArray =  qw(boot.img  recovery.img fdl2.bin u-boot.bin fdl1.bin u-boot-spl-16k.bin userdata.img cache.img system.img  prodnv.img );
+
+		foreach $bin (@genBinArray) 
+    {
+			p_system("ln -s  $ResearchDownloadBinPathRe/../../idh.code/out/target/product/$project/$bin $ResearchDownloadBinPath/ImageFiles/image/$bin");    		
+    }
+    system("rm $ResearchDownloadBinPath/$featureValues{'CUSTOM_TARGET_PRODUCT_CONF'}.xml");
+    system("ln -s $ResearchDownloadBinPathRe/idh.code/out/target/product/$project/$featureValues{'CUSTOM_TARGET_PRODUCT_CONF'}.xml $ResearchDownloadBinPath/$featureValues{'CUSTOM_TARGET_PRODUCT_CONF'}.xml");
+    system("rm $ResearchDownloadBinPath/ResearchDownload.ini");
+    
+    
+    
+#    system("cp $ResearchDownloadBinPath/ResearchDownloadTmp.ini $ResearchDownloadBinPath/ResearchDownload.ini");
+
+my $downloadTmp;
+open FILE,"$ResearchDownloadBinPath/ResearchDownloadTmp.ini" or die $!;  
+{  
+     local $/=undef;
+     $downloadTmp= <FILE>;  
+     close FILE;  
+}     
+    
+my $binconfig = "MODEM_WCN=1\@.\\ImageFiles\\image\\$featureValues{'MODEM_WCN'}\r
+BOOT=1\@.\\ImageFiles\\image\\boot.img\r
+ERASESD=1\@\r
+MODEM=1\@.\\ImageFiles\\image\\$featureValues{'MODEM_WLTE'}\r
+NV=1\@.\\ImageFiles\\image\\$featureValues{'NV_WLTE'}\r
+USERDATA=1\@.\\ImageFiles\\image\\userdata.img\r
+RECOVERY=1\@.\\ImageFiles\\image\\recovery.img\r
+DSP_TG=1\@.\\ImageFiles\\image\\$featureValues{'DSP_WLTE_GGE'}\r
+ERASEUBOOT=1\@\r
+FDL2=1\@.\\ImageFiles\\image\\fdl2.bin\r
+UBOOTLOADER=1\@.\\ImageFiles\\image\\u-boot.bin\r
+WARM=1\@.\\ImageFiles\\image\\$featureValues{'WARM_WLTE'}\r
+FLASHE=1\@\r
+FDL_WCN=1\@.\\ImageFiles\\image\\$featureValues{'FDL_WCN'}\r
+FDL=1\@.\\ImageFiles\\image\\fdl1.bin\r
+PHASECHECK=1\@\r
+BOOTLOGO=1\@.\\ImageFiles\\image\\$featureValues{'BOOTLOGO'}\r
+DFS=1\@.\\ImageFiles\\image\\$featureValues{'DFS'}\r
+DSP_LTE=1\@.\\ImageFiles\\image\\$featureValues{'DSP_WLTE_LTE'}\r
+FASTBOOT_LOGO=1\@.\\ImageFiles\\image\\$featureValues{'FASTBOOT_LOGO'}\r
+CACHE=1\@.\\ImageFiles\\image\\cache.img\r
+SYSTEM=1\@.\\ImageFiles\\image\\system.img\r
+ERASEMISC=1\@\r
+SPLLOADER=1\@.\\ImageFiles\\image\\u-boot-spl-16k.bin\r
+PRODNV=1\@.\\ImageFiles\\image\\prodnv.img\r";
+#		print $binconfig;
+   die "can NOT open $ResearchDownloadBinPath/ResearchDownload.ini:$!" if ( ! open OUT_FILE, ">$ResearchDownloadBinPath/ResearchDownload.ini");      
+   
+print OUT_FILE 	 "[Selection]\n";
+print OUT_FILE 	 "SelectProduct=$featureValues{'CUSTOM_TARGET_PRODUCT_NAME'}\n";
+print OUT_FILE "$downloadTmp";
+print OUT_FILE "[$featureValues{'CUSTOM_TARGET_PRODUCT_NAME'}]\n";
+print OUT_FILE "$binconfig";
+	 close OUT_FILE;

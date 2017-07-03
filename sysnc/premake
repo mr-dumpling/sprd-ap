@@ -4,8 +4,7 @@
 # ##########################################################
 # Overwrite JAVA_HOME environment variable setting if already exists
 perl syscLtk $1 $2;
-LTK_SYSNC=`cat LTK_SYSNC`;
-LTK_LUNCH=`cat LTK_LUNCH`;
+source ./project.conf.mk
 if [ "$LTK_SYSNC" = "success" ]
 then
 source build/envsetup.sh
