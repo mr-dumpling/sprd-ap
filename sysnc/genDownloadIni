@@ -94,31 +94,8 @@ open FILE,"$ResearchDownloadBinPath/ResearchDownloadTmp.ini" or die $!;
      close FILE;  
 }     
     
-my $binconfig = "MODEM_WCN=1\@.\\ImageFiles\\image\\$featureValues{'MODEM_WCN'}\r
-BOOT=1\@.\\ImageFiles\\image\\boot.img\r
-ERASESD=1\@\r
-MODEM=1\@.\\ImageFiles\\image\\$featureValues{'MODEM_WLTE'}\r
-NV=1\@.\\ImageFiles\\image\\$featureValues{'NV_WLTE'}\r
-USERDATA=1\@.\\ImageFiles\\image\\userdata.img\r
-RECOVERY=1\@.\\ImageFiles\\image\\recovery.img\r
-DSP_TG=1\@.\\ImageFiles\\image\\$featureValues{'DSP_WLTE_GGE'}\r
-ERASEUBOOT=1\@\r
-FDL2=1\@.\\ImageFiles\\image\\fdl2.bin\r
-UBOOTLOADER=1\@.\\ImageFiles\\image\\u-boot.bin\r
-WARM=1\@.\\ImageFiles\\image\\$featureValues{'WARM_WLTE'}\r
-FLASHE=1\@\r
-FDL_WCN=1\@.\\ImageFiles\\image\\$featureValues{'FDL_WCN'}\r
-FDL=1\@.\\ImageFiles\\image\\fdl1.bin\r
-PHASECHECK=1\@\r
-BOOTLOGO=1\@.\\ImageFiles\\image\\$featureValues{'BOOTLOGO'}\r
-DFS=1\@.\\ImageFiles\\image\\$featureValues{'DFS'}\r
-DSP_LTE=1\@.\\ImageFiles\\image\\$featureValues{'DSP_WLTE_LTE'}\r
-FASTBOOT_LOGO=1\@.\\ImageFiles\\image\\$featureValues{'FASTBOOT_LOGO'}\r
-CACHE=1\@.\\ImageFiles\\image\\cache.img\r
-SYSTEM=1\@.\\ImageFiles\\image\\system.img\r
-ERASEMISC=1\@\r
-SPLLOADER=1\@.\\ImageFiles\\image\\u-boot-spl-16k.bin\r
-PRODNV=1\@.\\ImageFiles\\image\\prodnv.img\r";
+require ("partition.pl");
+
 #		print $binconfig;
    die "can NOT open $ResearchDownloadBinPath/ResearchDownload.ini:$!" if ( ! open OUT_FILE, ">$ResearchDownloadBinPath/ResearchDownload.ini");      
    

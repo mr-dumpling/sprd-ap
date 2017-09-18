@@ -3,14 +3,22 @@
 # ALPS(Android4.1 based) build environment profile setting
 # ##########################################################
 # Overwrite JAVA_HOME environment variable setting if already exists
-perl syscLtk $1 $2;
-source ./project.conf.mk
-if [ "$LTK_SYSNC" = "success" ]
+if [ $# != 0 ]
 then
-source build/envsetup.sh
-echo $LTK_LUNCH
-lunch $LTK_LUNCH
-kheader
+	perl syscLtk $1 $2;
+fi
+if [ -f "./project.conf.mk" ]; 
+then
+	source ./project.conf.mk
+	if [ "$LTK_SYSNC" = "success" ]
+	then
+		source build/envsetup.sh
+		echo $LTK_LUNCH
+		lunch $LTK_LUNCH
+		kheader
+	else
+		echo failure
+	fi
 else
-echo failure
+  echo "Please input the sync dir."
 fi

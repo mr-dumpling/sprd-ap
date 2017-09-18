@@ -32,6 +32,7 @@
 # RELATED THERETO SHALL BE SETTLED BY ARBITRATION IN SAN FRANCISCO, CA, UNDER
 # THE RULES OF THE INTERNATIONAL CHAMBER OF COMMERCE (ICC).
 # 
+use POSIX qw(strftime);
 use Sys::Hostname;
 my $DEBUG = 0; # enable/disable script debugging message
 
@@ -55,7 +56,7 @@ Directory names containing spaces not supported\n" if($#number != 0);
 $product = "";
 $project = "";
 $project_config = "";
-
+$nvitem_project_dir = "";
 
 # lentek
 $lentek_project="";
@@ -245,7 +246,8 @@ sub createProjectFeature
 		$product = $featureValues{"CUSTOM_TARGET_PRODUCT"};
 		$project = $featureValues{"CUSTOM_TARGET_PROJECT"};
 		$project_config = $featureValues{"CUSTOM_TARGET_PROJECT_CONF"};
-
+		$nvitem_project_dir = $featureValues{"CUSTOM_NVITEM_PRODUCT_DIR"};
+		
     return $project_config;
 }
 sub sync_lentek_project()
@@ -269,8 +271,30 @@ if (($lentek_project)&&($lentek_customer))
 		}
 		system("rsync -avr --ignore-times --exclude=.svn --exclude=Thumbs.db --exclude=.git --exclude=.cvs ../lentek/${lentek_project}/${lentek_customer}/modem/ ../modem/ >> ltk_cust_sync.log 2>&1");
     system("rsync -avr --ignore-times --exclude=.svn --exclude=Thumbs.db --exclude=.git --exclude=.cvs ../lentek/${lentek_project}/${lentek_customer}/idh.code/ ./ >> ltk_cust_sync.log 2>&1");
+
+		if(-e "$nvitem_project_dir/nvitem.bin"){
+ 				system("rm $nvitem_project_dir/nvitem.bin");
+		}
 	
+ 		if(! -e "NVGen")
+ 		{
+ 			system("ln -s ../tools/NVEDITOR/Linux/Bin/NVGen NVGen");
+ 		}
+
+ 		system("./NVGen $nvitem_project_dir/nvitem.prj -L"); 		
+ 		die "can create $nvitem_project_dir/nvitem.bin:$!" if (!-e "$nvitem_project_dir/nvitem.bin");
+ 		
+		if(-e "../lentek/${lentek_project}/${lentek_customer}/image/$featureValues{'NV_WLTE'}")
+		{
+			p_system("rm ../lentek/${lentek_project}/${lentek_customer}/image/$featureValues{'NV_WLTE'}");
+		}
  
+    if(! -d "../lentek/${lentek_project}/${lentek_customer}/image")
+    {
+    	p_system("mkdir -p ../lentek/${lentek_project}/${lentek_customer}/image");
+    }
+ 		p_system("cp $nvitem_project_dir/nvitem.bin ../lentek/${lentek_project}/${lentek_customer}/image/$featureValues{'NV_WLTE'}");
+ 		
 	 	 @releaseFeatrueKey = qw(
 				CUSTOM_BT_SUPPORT_INFO
 				CUSTOM_FM_SUPPORT_INFO
@@ -328,6 +352,7 @@ if (($lentek_project)&&($lentek_customer))
 	}
 	 ($sec_log,$min_log,$hour_log,$mday_log,$mon_log,$year_log,$wday_log,$yday_log,$isdst_log) = localtime(time);
    $current_time_str = sprintf("%04d%02d%02d_%02d%02d", $year_log + 1900, $mon_log +1, $mday_log, $hour_log, $min_log);
+
 #   my $week=0;
 #   my $num = $yday_log + 1; 
 #   if ($num % 7 == 0) {
@@ -362,13 +387,16 @@ if (($lentek_project)&&($lentek_customer))
 	 $featureValues{"LENTEK_BUILD_PACKAGE"} = $featureValues{"LENTEK_BUILD_VERNO"} . _ . $current_time_str;
    if(exists $featureValues{"CUSTOM_BUILD_VERNO_FIXED"} && $featureValues{"CUSTOM_BUILD_VERNO_FIXED"} ne " ")
 	 {
-		if(exists $featureValues{"CUSTOM_BUILD_VERNO_FIXED_ADD_BUILD_TIME"} && $featureValues{"CUSTOM_BUILD_VERNO_FIXED_ADD_BUILD_TIME"} eq "yes")
+		if(exists $featureValues{"CUSTOM_BUILD_VERNO_FIXED_ADD_BUILD_TIME"} && $featureValues{"CUSTOM_BUILD_VERNO_FIXED_ADD_BUILD_TIME"} ne " ")
 		{
-			$featureValues{"LENTEK_BUILD_VERNO"} = $featureValues{"CUSTOM_BUILD_VERNO_FIXED"} . _ . $current_time_str;
+		
+			$datestring = strftime $featureValues{"CUSTOM_BUILD_VERNO_FIXED_ADD_BUILD_TIME"}, localtime;
+			$featureValues{"LENTEK_BUILD_VERNO"} = $featureValues{"CUSTOM_BUILD_VERNO_FIXED"} . _ . $datestring;
 		}
 		else
 		{
 			$featureValues{"LENTEK_BUILD_VERNO"} = $featureValues{"CUSTOM_BUILD_VERNO_FIXED"};
+
 		}
 	 }
 

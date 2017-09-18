@@ -29,11 +29,11 @@ my $xmlfile ="$featureValues{'CUSTOM_TARGET_PRODUCT_CONF'}.xml";
 my $productname =$featureValues{'CUSTOM_TARGET_PRODUCT_NAME'};
     
 my $ResearchDownloadBinPath = "../tools/ResearchDownload/Bin";  
-my $otherBinPath = "$ResearchDownloadBinPath/ImageFiles/image";    
-my $outBinPath = "out/target/product/$featureValues{'CUSTOM_TARGET_PROJECT'}";
+$otherBinPath = "$ResearchDownloadBinPath/ImageFiles/image";    
+$outBinPath = "out/target/product/$featureValues{'CUSTOM_TARGET_PROJECT'}";
 my $packagename = $featureValues{'LENTEK_BUILD_PACKAGE'};
 my $customverno = $featureValues{'LENTEK_BUILD_VERNO'};
-
+my $nvitem_project_dir = $featureValues{"CUSTOM_NVITEM_PRODUCT_DIR"};;
 
 my $number = scalar @ARGV;	
 my $i=0;
@@ -48,41 +48,10 @@ if($buildvariant ne "user")
 my $pac_file       =$packagename . ".pac";
 my $pac_prj        =$productname;
 my $pac_ver        =$customverno;
-my $config         =$outBinPath . "/" . $xmlfile;
+$config         =$outBinPath . "/" . $xmlfile;
 
-my @param = (
-   #ID              , file_path          , file_flag, check_flag, omit_flag, addr1     , addr2 
-   ["FDL"           , "$outBinPath/fdl1.bin", 							0x0101   , 1        , 0        , 0x50000000, 0xFFFFFFFF  ],
-   ["FDL2"          , "$outBinPath/fdl2.bin", 							0x0101   , 1        , 0        , 0x80000000, 0xFFFFFFFF  ],
-   ["NV"       , "$otherBinPath/$featureValues{'NV_WLTE'}", 						1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["ProdNV"        , "$outBinPath/prodnv_b256k_p4k.img", 	1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["PhaseCheck"    , ""                 				, 0        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["EraseUBOOT"    , ""                 				, 0        , 1        , 1        , 0x0       , 0xFFFFFFFF  ],
-   ["SPLLoader"     , "$outBinPath/u-boot-spl-16k.bin", 		1        , 1        , 0        , 0x00000000, 0xFFFFFFFF  ],
-   ["Modem"    , "$otherBinPath/$featureValues{'MODEM_WLTE'}", 	1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["DSP_LTE"  , "$otherBinPath/$featureValues{'DSP_WLTE_LTE'}", 						1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["DSP_TG"  , "$otherBinPath/$featureValues{'DSP_WLTE_GGE'}", 			1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["WARM"     , "$otherBinPath/$featureValues{'WARM_WLTE'}", 1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["DFS"           , "$otherBinPath/$featureValues{'DFS'}", 			1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["FDL_WCN"       , "$otherBinPath/$featureValues{'FDL_WCN'}", 					1        , 1        , 1        , 0x0       , 0xFFFFFFFF  ],
-   ["Modem_WCN"     , "$otherBinPath/$featureValues{'MODEM_WCN'}", 1        , 1        , 1        , 0x0       , 0xFFFFFFFF  ],
-   ["BOOT"          , "$outBinPath/boot.img", 							1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["Recovery"      , "$outBinPath/recovery.img", 					1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["System"        , "$outBinPath/system_b256k_p4k.img", 	1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["UserData"      , "$outBinPath/userdata_b256k_p4k.img", 1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["BootLogo"      , "$otherBinPath/$featureValues{'BOOTLOGO'}", 				1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["Fastboot_Logo" , "$otherBinPath/$featureValues{'FASTBOOT_LOGO'}", 				1        , 1        , 1        , 0x0       , 0xFFFFFFFF  ],
-   ["Cache"         , "$outBinPath/cache_b256k_p4k.img", 		1        , 1        , 1        , 0x0       , 0xFFFFFFFF  ],
-   ["FLASH_WLTE"    , ""                 , 				0        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["EraseMisc"     , ""                 , 				0        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["EraseSD"       , ""                 , 				0        , 1        , 1        , 0x0       , 0xFFFFFFFF  ],
-   ["UBOOTLoader"   , "$outBinPath/u-boot.bin", 						1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["ProdNV"        , "$outBinPath/prodnv_b128k_p2k.img", 	1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["System"        , "$outBinPath/system_b128k_p2k.img", 	1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["UserData"      , "$outBinPath/userdata_b128k_p2k.img", 1        , 1        , 0        , 0x0       , 0xFFFFFFFF  ],
-   ["Cache"         , "$outBinPath/cache_b128k_p2k.img", 		1        , 1        , 1        , 0x0       , 0xFFFFFFFF  ],
-   [""              , $config            , 				2        , 0        , 0        , 0x0       , 0xFFFFFFFF  ],
-);
+require ("partition.pl");
+
 my $file_count = scalar @param;
 
 #File validity checking
@@ -627,5 +596,18 @@ sub GetPartitionInfo{
 		my $addr = $_->{"Block"}[0]->{"Base"}[0];
 		my $check_flag = $_->{"CheckFlag"}[0];
 		print $id . "\n";
+	}
+}
+
+$NUM_ARGV = @ARGV;
+
+if($NUM_ARGV != 0 && $ARGV[0] eq "-z")
+{
+	system("7z a -tzip $packagename.zip $pac_file");
+
+	system("7z a -tzip $packagename.zip $nvitem_project_dir");
+	if($buildvariant ne "user")
+	{
+		system("7z a -tzip $packagename.zip $outBinPath/obj/KERNEL/vmlinux");
 	}
 }
